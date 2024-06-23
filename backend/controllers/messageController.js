@@ -1,156 +1,136 @@
 import { User } from '../models/userModel.js';
-import { Conversation } from '../models/conversationModel.js';
+import { PrivateChat } from '../models/privateChatModel.js';
 import { ConvoUser } from '../models/convouserModel.js';
 import { Message } from '../models/messageModel.js';
+import { Group } from '../models/groupModel.js';
+import { Op } from 'sequelize';
 
-export const createConversation = async (req, res) => {
+//PrivateChat controllers
+export const createPrivateChat = async (req, res) => {
     try {
-        const { name, members } = req.body;
+        const { otherUserId } = req.body;
         const user = req.user;
 
-        //check if conversation name is provided
-        if (!name) return res.status(400).json({ message: "Conversation name is required" });
+        //check if other party is provided
+        if (!otherUserId) return res.status(400).json({ error: "Other party is required" });
 
-        //check if members are provided
-        if ((!members) || (members.length < 1)) return res.status(400).json({ message: "At least one member is required" });
+        //check if other party exists
+        const otherUser = await User.findByPk(otherPartyId);
+        if (!otherUser) return res.status(400).json({ error: "Invalid User" });
 
-        //check if members are available in database
-        members.forEach(async (member) => {
-            const user = await User.findByPk(member.id);
-            if (!user) return res.status(400).json({ message: "Invalid member" });
-        });
+        //check if PrivateChat already exists
+        const privateChat = await PrivateChat.findOne({ where: { members: { [Op.contains]: [user.id, otherUserId] } } });
+        if (privateChat) return res.status(400).json({ error: "PrivateChat already exists" });
 
-        //create conversation
-        const convo = new Conversation({ name: name, userID: user.id });
-        await convo.save();
+        //create PrivateChat
+        const newPrivateChat = new PrivateChat({ members: [user.id, otherUserId] });
+        await newPrivateChat.save();
 
-        //add creator to conversation
-        const creator = new ConvoUser({ conversationID: convo.id, userID: user.id });
-        await creator.save();
-
-        //add members to conversation
-        members.forEach(async (member) => {
-            const newMember = new ConvoUser({ conversationID: convo.id, userID: member.id });
-            await newMember.save();
-        });
-
-        res.status(201).json({ message: "Conversation created successfully" });
+        res.status(201).json({ message: "PrivateChat created successfully" });
 
     } catch (error) {
-        console.log("Error in createConversation controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        console.log("Error in createPrivateChat controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
-export const getConversations = async (req, res) => {
+export const getPrivateChats = async (req, res) => {
     try {
         const user = req.user;
 
-        //get all conversation id s of user
-        const convoRecords = await ConvoUser.findAll({ where: { userID: user.id } });
+        //get all PrivateChats of user
+        const PrivateChats = await PrivateChat.findAll({ where: { members: { [Op.contains]: [user.id] } } });
+        console.log(PrivateChats, user.id);
 
-        //get all conversations of user
-        const convos = [];
-        for (let i = 0; i < convoRecords.length; i++) {
-            const convo = await Conversation.findByPk(convoRecords[i].conversationID);
-            convos.push(convo);
+        //get user details of PrivateChats
+        const users = [];
+        for (const privateChat of PrivateChats) {
+            const result = privateChat.members.filter((id) => id !== user.id);
+            const otherUser = await User.findByPk(result[0]);
+            if (otherUser) {
+                users.push({
+                    id: privateChat.id,
+                    fullname: otherUser.fullname,
+                    profilePic: otherUser.profilePic
+
+                });
+            }
         }
+        //console.log(users);
 
-        res.status(200).json(convos);
+        res.status(200).json(users);
 
     } catch (error) {
-        console.log("Error in getConversations controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        console.log("Error in getPrivateChats controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
-export const leaveConversation = async (req, res) => {
+// group chat controllers
+export const createGroup = async (req, res) => {
     try {
-        const { convoId } = req.params;
-        const user = req.user;
+        const { name, description } = req.body;
+        //check if groupChat name and description is provided
+        if (!name || !description) return res.status(400).json({ error: "Group name and description is required" });
 
-        //check if conversation exists
-        const convo = await Conversation.findByPk(convoId);
-        if (!convo) return res.status(400).json({ message: "Invalid conversation" });
-
-        //check if user is the admin of conversation
-        const admin = await Conversation.findOne({ where: { id: convoId, userID: user.id } });
-        if (admin) return res.status(400).json({ message: "Admin cannot leave conversation" });
-
-        //leave conversation
-        await ConvoUser.destroy({ where: { conversationID: convoId, userID: user.id } });
-
-        res.status(200).json({ message: "Left conversation successfully" });
+        res.status(201).json({ message: `${name} Group created successfully` });
 
     } catch (error) {
-        console.log("Error in leaveConversation controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        console.log("Error in createGroup controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
-export const deleteConversation = async (req, res) => {
+export const getGroup = async (req, res) => {
     try {
-        const { convoId } = req.params;
         const user = req.user;
 
-        //check if conversation exists
-        const convo = await Conversation.findByPk(convoId);
-        if (!convo) return res.status(400).json({ message: "Invalid conversation" });
+        //get all GroupChat id s of user
+        const groupChatsRecords = await ConvoUser.findAll({ where: { userID: user.id } });
 
-        //check if user is the admin of conversation
-        const admin = await Conversation.findOne({ where: { id: convoId, userID: user.id } });
-        if (!admin) return res.status(400).json({ message: "Only admin can delete conversation" });
+        //get all GroupChats of user
+        const groupChats = [];
+        groupChatsRecords.forEach(async (record) => {
+            const groupChat = await Group.findByPk(record.conversationID);
+            groupChats.push(groupChat);
+        });
 
-        //delete all messages of conversation
-        await Message.destroy({ where: { conversationID: convoId } });
-
-        //remove all members from conversation
-        await ConvoUser.destroy({ where: { conversationID: convoId } });
-
-        //delete conversation
-        await convo.destroy();
-
-        res.status(200).json({ message: "Conversation deleted successfully" });
+        res.status(200).json(groupChats);
 
     } catch (error) {
-        console.log("Error in deleteConversation controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        console.log("Error in getGroup controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
     }
+
 }
 
 export const addMembers = async (req, res) => {
     try {
-        const { convoId } = req.params;
         const { members } = req.body;
-        const user = req.user;
+        const { conversationID } = req.params;
 
         //check if members are provided
-        if ((!members) || (members.length < 1)) return res.status(400).json({ message: "At least one member is required" });
+        if ((!members) || (members.length < 1)) return res.status(400).json({ error: "At least one member is required" });
 
-        //check if conversation exists
-        const convo = await Conversation.findByPk(convoId);
-        if (!convo) return res.status(400).json({ message: "Invalid conversation" });
-
-        //check if user is the admin of conversation
-        const admin = await Conversation.findOne({ where: { id: convoId, userID: user.id } });
-        if (!admin) return res.status(400).json({ message: "Only admin can add members" });
+        //check if groupChat exists
+        const groupChat = await Group.findByPk(conversationID);
+        if (!groupChat) return res.status(400).json({ error: "Invalid Group" });
 
         //check members are available in database
         members.forEach(async (member) => {
             const user = await User.findByPk(member.id);
-            if (!user) return res.status(400).json({ message: "Invalid member" });
+            if (!user) return res.status(400).json({ error: "Invalid member" });
         });
 
-
-        //check if members are already part of conversation
+        //check if members are already part of groupChat
         members.forEach(async (member) => {
-            const memberRecord = await ConvoUser.findOne({ where: { conversationID: convoId, userID: member.id } });
-            if (memberRecord) return res.status(400).json({ message: "Member already part of conversation" });
+            const memberRecord = await ConvoUser.findOne({ where: { conversationID: conversationID, userID: member.id } });
+            if (memberRecord) return res.status(400).json({ error: "Member already part of Group" });
         });
 
-        //add members to conversation
+        //add members to groupChat
         members.forEach(async (member) => {
-            const newMember = new ConvoUser({ conversationID: convoId, userID: member.id });
+            const newMember = new ConvoUser({ conversationID: conversationID, userID: member.id });
             await newMember.save();
         });
 
@@ -158,7 +138,7 @@ export const addMembers = async (req, res) => {
 
     } catch (error) {
         console.log("Error in addMembers controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
@@ -167,102 +147,102 @@ export const getMembers = async (req, res) => {
         const { convoId } = req.params;
         const user = req.user;
 
-        //check if conversation exists
-        const convo = await Conversation.findByPk(convoId);
-        if (!convo) return res.status(400).json({ message: "Invalid conversation" });
+        //check if group exists
+        const convo = await Group.findByPk(convoId);
+        if (!convo) return res.status(400).json({ error: "Invalid Group" });
 
-        //check if user is part of conversation
+        //check if user is part of Group
         const membership = await ConvoUser.findOne({ where: { conversationID: convoId, userID: user.id } });
-        if (!membership) return res.status(400).json({ message: "Unauthorized conversation" });
+        if (!membership) return res.status(400).json({ error: "Unauthorized group" });
 
-        //get all members of conversation
+        //get all members of PrivateChat
         const members = await ConvoUser.findAll({ where: { conversationID: convoId } });
 
         res.status(200).json(members);
 
     } catch (error) {
         console.log("Error in getMembers controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
-export const removeMember = async (req, res) => {
-    try {
-        const { convoId, userId } = req.params;
-        const user = req.user;
-
-        //check if conversation exists
-        const convo = await Conversation.findByPk(convoId);
-        if (!convo) return res.status(400).json({ message: "Invalid conversation" });
-
-        //check if user is the admin of conversation
-        const admin = await Conversation.findOne({ where: { id: convoId, userID: user.id } });
-        if (!admin) return res.status(400).json({ message: "Only admin can remove members" });
-
-        //check if member exists in conversation
-        const member = await ConvoUser.findOne({ where: { conversationID: convoId, userID: userId } });
-        if (!member) return res.status(400).json({ message: "Invalid member" });
-
-        //remove member from conversation
-        await member.destroy();
-
-        res.status(200).json({ message: "Member removed successfully" });
-
-    } catch (error) {
-        console.log("Error in removeMember controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
-    }
-
-}
-
+// message controllers
 export const sendMessage = async (req, res) => {
     try {
         //get message and conversation id
         const { message } = req.body;
-        const { convoId } = req.params;
+        const { convoId, type } = req.params;
         const senderId = req.user.id;
 
-        //check if conversation exists
-        const convo = await Conversation.findByPk(convoId);
-        if (!convo) return res.status(400).json({ message: "Invalid conversation" });
+        if (type === "private") {
+            //check if Chat exists
+            const convo = await PrivateChat.findByPk(convoId);
+            if (!convo) return res.status(400).json({ error: "Invalid PrivateChat" });
 
-        //check if user is part of conversation
-        const user = await ConvoUser.findOne({ where: { conversationID: convoId, userID: senderId } });
-        if (!user) return res.status(400).json({ message: "Unauthorized conversation" });
+            //check if user is part of chat
+            const privateChat = await PrivateChat.findOne({ where: { members: { [Op.contains]: [senderId] } } });
+            if (!privateChat) return res.status(400).json({ error: "Unauthorized Private chat" });
 
+        } else if (type === "group") {
+            //check if Chat exists
+            const convo = await Group.findByPk(convoId);
+            if (!convo) return res.status(400).json({ error: "Invalid Group" });
+
+            //check if user is part of group
+            const user = await ConvoUser.findOne({ where: { conversationID: convoId, userID: senderId } });
+            if (!user) return res.status(400).json({ error: "Unauthorized group" });
+        }
+        else {
+            return res.status(400).json({ error: "Invalid chat type" });
+        }
+        console.log(type);
         //save message
-        const newMessage = new Message({ userID: senderId, conversationID: convoId, message: message });
+        const newMessage = new Message({ userID: senderId, conversationType: type, conversationID: convoId, message: message });
         await newMessage.save();
 
         res.status(200).json(newMessage);
 
     } catch (error) {
         console.log("Error in sendMessage controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
 export const getMessages = async (req, res) => {
     try {
-        const { convoId } = req.params;
+        const { convoId, type } = req.params;
         const user = req.user;
 
-        //check if conversation exists
-        const convo = await Conversation.findByPk(convoId);
-        if (!convo) return res.status(400).json({ message: "Invalid conversation" });
+        if (type === "private") {
+            //check if Chat exists
+            const convo = await PrivateChat.findByPk(convoId);
+            if (!convo) return res.status(400).json({ error: "Invalid PrivateChat" });
 
-        //check if user is part of conversation
-        const membership = await ConvoUser.findOne({ where: { conversationID: convoId, userID: user.id } });
-        if (!membership) return res.status(400).json({ message: "Unauthorized conversation" });
+            //check if user is part of chat
+            const privateChat = await PrivateChat.findOne({ where: { members: { [Op.contains]: [user.id] } } });
+            if (!privateChat) return res.status(400).json({ error: "Unauthorized Private chat" });
 
-        //get all messages of conversation
+        } else if (type === "group") {
+            //check if Chat exists
+            const convo = await Group.findByPk(convoId);
+            if (!convo) return res.status(400).json({ error: "Invalid Group" });
+
+            //check if user is part of group
+            const user = await ConvoUser.findOne({ where: { conversationID: convoId, userID: senderId } });
+            if (!user) return res.status(400).json({ error: "Unauthorized group" });
+        }
+        else {
+            return res.status(400).json({ error: "Invalid chat type" });
+        }
+
+        //get all messages of PrivateChat
         const messages = await Message.findAll({ where: { conversationID: convoId } });
 
         res.status(200).json(messages);
 
     } catch (error) {
         console.log("Error in getMessages controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 }
 
@@ -273,10 +253,10 @@ export const deleteMessage = async (req, res) => {
 
         //check if message exists
         const message = await Message.findByPk(messageId);
-        if (!message) return res.status(400).json({ message: "Invalid message" });
+        if (!message) return res.status(400).json({ error: "Invalid message" });
 
         //check if user is the sender of message
-        if (message.userID !== user.id) return res.status(400).json({ message: "Unauthorized message" });
+        if (message.userID !== user.id) return res.status(400).json({ error: "Unauthorized message" });
 
         //delete message
         await message.destroy();
@@ -285,6 +265,6 @@ export const deleteMessage = async (req, res) => {
 
     } catch (error) {
         console.log("Error in deleteMessage controller: ", error.message);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 }

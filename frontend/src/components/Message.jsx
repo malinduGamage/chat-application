@@ -1,19 +1,28 @@
 import React from 'react'
+import { useAuthContext } from '../context/AuthContext'
+import useConvo from '../zustand/useConvo'
+import { extractTime } from '../utils/extractTime'
 
-const Message = () => {
+const Message = ({ message }) => {
+    const { authUser } = useAuthContext()
+    const { selectedConvo } = useConvo()
+    const time = extractTime(message.createdAt)
+    const fromMe = message.userID === authUser.id
+    const chatClass = fromMe ? 'chat chat-end' : 'chat chat-start'
+    const profilePic = fromMe ? authUser.profilePic : selectedConvo.profilePic
+    const bubbleClass = fromMe ? 'chat-bubble bg-blue-500' : 'chat-bubble bg-white text-black'
+
     return (
         <div>
-            <div className="chat chat-end">
+            <div className={`chat ${chatClass}`}>
                 <div className="chat-image avatar">
                     <div className="w-10 rounded-full">
-                        <img alt="Tailwind CSS chat bubble component" src="https://img.daisyui.com/images/stock/photo-1534528741775-53994a69daeb.jpg" />
+                        <img alt="" src={profilePic} />
                     </div>
                 </div>
-                <div className="chat-header">
-                    Obi-Wan Kenobi
-                    <time className="text-xs opacity-50">12:45</time>
-                </div>
-                <div className="chat-bubble">You were the Chosen One!</div>
+
+                <div className={`chat-bubble ${bubbleClass} text-white pb-2`}>{message.message}</div>
+                <div className="chat-footer"><time className="text-xs opacity-50"> {time}</time></div>
             </div>
         </div>
     )

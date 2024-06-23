@@ -6,11 +6,12 @@ export const signup = async (req, res) => {
     try {
         //get data from req body and validate
         const { fullname, email, password, confirm } = req.body;
-        if (password !== confirm) return res.status(400).json({ message: "Password not matched" });
+        console.log(req.body);
+        if (password !== confirm) return res.status(400).json({ error: "Password not matched" });
 
         //check if user already exists
         const user = await User.findOne({ where: { email } });
-        if (user) return res.status(400).json({ message: "User already exists" });
+        if (user) return res.status(400).json({ error: "User already exists" });
 
         //set profile pic and role
         const profilePic = "https://avatar.iran.liara.run/public/boy?username=" + email;
@@ -30,7 +31,7 @@ export const signup = async (req, res) => {
         });
 
         //check if new user created
-        if (!newUser) return res.status(400).json({ message: "Failed to create user" });
+        if (!newUser) return res.status(400).json({ error: "Failed to create user" });
 
         //store in database
         await newUser.save();
@@ -44,7 +45,7 @@ export const signup = async (req, res) => {
 
     } catch (error) {
         console.error("error in signup controller", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 };
 
@@ -55,11 +56,11 @@ export const login = async (req, res) => {
 
         //check if user exists
         const user = await User.findOne({ where: { email } });
-        if (!user) return res.status(400).json({ message: "Invalid credentials" });
+        if (!user) return res.status(400).json({ error: "Invalid credentials" });
 
         //compare password
         const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) return res.status(400).json({ message: "Invalid credentials" });
+        if (!isMatch) return res.status(400).json({ error: "Invalid credentials" });
 
         //set response cookie and status
         tokenGen(user.id, res);
@@ -70,7 +71,7 @@ export const login = async (req, res) => {
 
     } catch (error) {
         console.error("error in login controller", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 };
 
@@ -80,6 +81,6 @@ export const logout = async (req, res) => {
         res.status(200).json({ message: "Logged out successfully" })
     } catch (error) {
         console.error("error in logout controller", error);
-        res.status(500).json({ message: "Internal server error" });
+        res.status(500).json({ error: "Internal server error" });
     }
 };

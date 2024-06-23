@@ -2,23 +2,20 @@ import express from 'express';
 const router = express.Router();
 
 import { protectedRoute } from '../middleware/protectedRoute.js';
-import { sendMessage, createConversation, addMembers, getConversations, deleteConversation, leaveConversation, getMessages, getMembers, deleteMessage, removeMember } from '../controllers/messageController.js';
+import { sendMessage, createPrivateChat, addMembers, getMessages, getMembers, deleteMessage, getPrivateChats, createGroup, getGroup } from '../controllers/messageController.js';
 
 
 //message routes
-router.post("/send/:convoId", protectedRoute, sendMessage); //send message to conversation
+router.post("/send/:type/:convoId", protectedRoute, sendMessage); //send message to conversation
 router.delete("/deleteMessage/:messageId", protectedRoute, deleteMessage); //delete message
-router.get("/getMessages/:convoId", protectedRoute, getMessages); //get messages
-//conversation routes
-router.post("/newConvo", protectedRoute, createConversation); //create new conversation
-router.get("/getConvo", protectedRoute, getConversations); //get all conversations
-router.delete("/deleteConvo/:convoId", protectedRoute, deleteConversation); //delete conversation
-router.post("/leaveConvo/:convoId", protectedRoute, leaveConversation); //leave conversation
-//members routes
-router.post("/addMembers/:convoId", protectedRoute, addMembers); //add members to conversation
-router.get("/getMembers/:convoId", protectedRoute, getMembers); //get members of conversation
-router.delete("/removeMember/:convoId/:userId", protectedRoute, removeMember); //remove member from conversation
-
-
+router.get("/getMessages/:type/:convoId", protectedRoute, getMessages); //get messages
+//private chat routes
+router.post("/private/createChat", protectedRoute, createPrivateChat); //create private chat
+router.get("/private/getChat", protectedRoute, getPrivateChats); //get all conversations
+//group chat routes
+router.post("/group/createChat", protectedRoute, createGroup); //create group chat
+router.get("/group/getChat", protectedRoute, getGroup); //get all conversations
+router.post("/group/addMembers/:convoId", protectedRoute, addMembers); //add members to conversation
+router.get("/group/getMembers/:convoId", protectedRoute, getMembers); //get members of conversation
 
 export default router;

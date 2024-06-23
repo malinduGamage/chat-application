@@ -7,7 +7,7 @@ const tokenGen = (id, res) => {
     res.cookie('token', token, {
         httpOnly: true, // cookie cannot be accessed by client side js
         maxAge: 14 * 24 * 60 * 60 * 1000, // 14 days
-        sameSite: 'strict', // cookie cannot be sent with cross-origin requests
+        sameSite: 'Strict', //' cookie cannot be sent with cross-origin requests
         secure: process.env.NODE_ENV != "development", // cookie can only be sent over https
     });
 }

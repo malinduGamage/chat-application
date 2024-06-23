@@ -1,14 +1,14 @@
 import { sequelize } from '../db/connection.js';
 import { DataTypes } from 'sequelize';
 import { User } from "./userModel.js";
-import { Conversation } from "./conversationModel.js";
+import { Group } from "./groupModel.js";
 
 const ConvoUser = sequelize.define('ConvoUser', {
     conversationID: {
         type: DataTypes.INTEGER,
         allowNull: false,
         references: {
-            model: Conversation,
+            model: Group,
             key: 'id',
         },
         primaryKey: true

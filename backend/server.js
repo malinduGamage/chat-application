@@ -1,11 +1,13 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
+//import cors from 'cors';
 
 import { syncDb, testDbConnection } from './db/connection.js';
-import { syncConvo } from './models/conversationModel.js';
-import { syncConvoUser, ConvoUser } from './models/convouserModel.js';
+import { syncPrivateChat } from './models/privateChatModel.js';
+import { syncConvoUser } from './models/convouserModel.js';
 import { syncMessage } from './models/messageModel.js';
+import { syncGroup } from './models/groupModel.js';
 
 import authRoutes from './routes/authRoutes.js';
 import messageRoute from './routes/messageRoute.js'
@@ -15,6 +17,7 @@ const PORT = process.env.PORT || 5000;
 
 dotenv.config();
 
+//app.use(cors());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -28,7 +31,8 @@ app.use("/api/message", messageRoute)
 app.listen(PORT, () => {
     //testDbConnection();
     //syncDb();;
-    //syncConvo();
+    //syncPrivateChat();
+    //syncGroup();
     //syncConvoUser();
     //syncMessage();
     console.log(`Server is running on port ${PORT}`);
