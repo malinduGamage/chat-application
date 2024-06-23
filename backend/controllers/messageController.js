@@ -4,6 +4,8 @@ import { ConvoUser } from '../models/convouserModel.js';
 import { Message } from '../models/messageModel.js';
 import { Group } from '../models/groupModel.js';
 import { Op } from 'sequelize';
+import { getRecieverSocketId } from '../socket/socket.js';
+import { io } from '../socket/socket.js';
 
 //PrivateChat controllers
 export const createPrivateChat = async (req, res) => {
@@ -50,6 +52,7 @@ export const getPrivateChats = async (req, res) => {
             if (otherUser) {
                 users.push({
                     id: privateChat.id,
+                    userId: otherUser.id,
                     fullname: otherUser.fullname,
                     profilePic: otherUser.profilePic
 
@@ -174,9 +177,11 @@ export const sendMessage = async (req, res) => {
         const { convoId, type } = req.params;
         const senderId = req.user.id;
 
+        let convo;
+
         if (type === "private") {
             //check if Chat exists
-            const convo = await PrivateChat.findByPk(convoId);
+            convo = await PrivateChat.findByPk(convoId);
             if (!convo) return res.status(400).json({ error: "Invalid PrivateChat" });
 
             //check if user is part of chat
@@ -185,7 +190,7 @@ export const sendMessage = async (req, res) => {
 
         } else if (type === "group") {
             //check if Chat exists
-            const convo = await Group.findByPk(convoId);
+            convo = await Group.findByPk(convoId);
             if (!convo) return res.status(400).json({ error: "Invalid Group" });
 
             //check if user is part of group
@@ -199,6 +204,16 @@ export const sendMessage = async (req, res) => {
         //save message
         const newMessage = new Message({ userID: senderId, conversationType: type, conversationID: convoId, message: message });
         await newMessage.save();
+
+        const recieverId = type === "private" ? convo.members.filter((id) => id !== senderId)[0] : null;
+
+        //socket io emit message to reciever
+        if (recieverId) {
+            const recieverSocketId = getRecieverSocketId(recieverId);
+            if (recieverSocketId) {
+                io.to(recieverSocketId).emit("newMessage", newMessage);
+            }
+        }
 
         res.status(200).json(newMessage);
 

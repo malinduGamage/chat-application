@@ -4,11 +4,13 @@ import useConvo from '../zustand/useConvo'
 import useGetMessages from '../hooks/useGetMessages'
 import MessageSkeleton from './MessageSkeleton'
 import { useEffect, useRef } from 'react'
+import useListenMessages from '../hooks/useListenMessages'
 
 const Messages = () => {
     const { loading } = useGetMessages()
     const { messages } = useConvo()
     const lastMessageRef = useRef()
+    useListenMessages()
 
     useEffect(() => {
         setTimeout(() => {

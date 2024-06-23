@@ -1,7 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cookieParser from 'cookie-parser';
-//import cors from 'cors';
+import { app, server } from './socket/socket.js';
 
 import { syncDb, testDbConnection } from './db/connection.js';
 import { syncPrivateChat } from './models/privateChatModel.js';
@@ -12,7 +12,6 @@ import { syncGroup } from './models/groupModel.js';
 import authRoutes from './routes/authRoutes.js';
 import messageRoute from './routes/messageRoute.js'
 
-const app = express();
 const PORT = process.env.PORT || 5000;
 
 dotenv.config();
@@ -28,7 +27,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoute)
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     //testDbConnection();
     //syncDb();;
     //syncPrivateChat();

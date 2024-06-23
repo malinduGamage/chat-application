@@ -1,13 +1,20 @@
 import React from 'react'
 import useConvo from '../zustand/useConvo'
+import { useSocketContext } from '../context/socketContext'
+import { useAuthContext } from '../context/AuthContext'
 
 const Conversation = ({ conversation, lastIndex }) => {
+    const { authUser } = useAuthContext()
     const { selectedConvo, setSelectedConvo } = useConvo()
     const isSelected = selectedConvo?.id === conversation.id
+    const { onlineUsers } = useSocketContext()
+    const isOnline = onlineUsers.includes(String(conversation.userId))
+    console.log(conversation.userId, onlineUsers, isOnline)
+
     return (
         <>
             <div className={`flex gap-2 items-center hover:bg-sky-500 rounded-md p-2 py-1 cursor-pointer' ${isSelected ? "bg-sky-500" : ""}`} onClick={() => setSelectedConvo(conversation)}>
-                <div className="avatar">
+                <div className={`avatar ${isOnline ? "online" : ""}`}>
                     <div className="w-24 rounded-full">
                         <img src={conversation.profilePic} alt='' />
                     </div>
