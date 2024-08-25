@@ -1,9 +1,10 @@
-import { set } from "mongoose"
 import useConvo from "../zustand/useConvo"
 import { useState } from "react"
 import toast from "react-hot-toast"
+import { useAuthContext } from '../context/AuthContext'
 
 const useSendMessages = () => {
+    const { authUser } = useAuthContext()
     const [loading, setLoading] = useState(false)
     const { messages, setMessages } = useConvo()
 
@@ -17,7 +18,8 @@ const useSendMessages = () => {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 },
                 body: JSON.stringify({
-                    message: message
+                    message: message,
+                    senderId: authUser.id
                 })
             })
             const data = await response.json()

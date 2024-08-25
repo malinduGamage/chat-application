@@ -14,7 +14,7 @@ export const signup = async (req, res) => {
         if (user) return res.status(400).json({ error: "User already exists" });
 
         //set profile pic and role
-        const profilePic = "https://avatar.iran.liara.run/public/boy?username=" + email;
+        const profilepic = "https://avatar.iran.liara.run/public/boy?username=" + email;
         const role = "admin";
 
         //hash password
@@ -27,7 +27,7 @@ export const signup = async (req, res) => {
             email,
             password: hash,
             role,
-            profilePic
+            profilepic
         });
 
         //check if new user created

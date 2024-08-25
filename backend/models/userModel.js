@@ -19,7 +19,7 @@ const User = sequelize.define('User', {
         type: DataTypes.STRING(20),
         allowNull: false,
     },
-    profilePic: {
+    profilepic: {
         type: DataTypes.STRING(255),
     }
 }, {

@@ -2,13 +2,14 @@ import express from 'express';
 const router = express.Router();
 
 import { protectedRoute } from '../middleware/protectedRoute.js';
-import { sendMessage, createPrivateChat, addMembers, getMessages, getMembers, deleteMessage, getPrivateChats, createGroup, getGroup } from '../controllers/messageController.js';
+import { sendMessage, createPrivateChat, addMembers, getMessages, getMembers, deleteMessage, getPrivateChats, createGroup, getGroup, getPeople } from '../controllers/messageController.js';
 
 
 //message routes
 router.post("/send/:type/:convoId", protectedRoute, sendMessage); //send message to conversation
 router.delete("/deleteMessage/:messageId", protectedRoute, deleteMessage); //delete message
 router.get("/getMessages/:type/:convoId", protectedRoute, getMessages); //get messages
+router.get("/getPeople", protectedRoute, getPeople); //get People
 //private chat routes
 router.post("/private/createChat", protectedRoute, createPrivateChat); //create private chat
 router.get("/private/getChat", protectedRoute, getPrivateChats); //get all conversations

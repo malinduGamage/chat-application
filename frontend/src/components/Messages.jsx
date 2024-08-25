@@ -20,10 +20,9 @@ const Messages = () => {
         }, 100)
     }, [messages])
 
-    console.log("messages", messages)
 
     return (
-        <div className='px-4 flex-1 overflow-auto'>
+        <div className='p-4 flex-1 overflow-auto'>
             {loading && [...Array(5)].map((_, index) => <MessageSkeleton key={index} />)}
             {!loading && messages.length === 0 && (<p className='text-center text-white'>Send a message to start a conversation</p>)}
             {!loading && messages.length > 0 && messages.map((message, index) => (

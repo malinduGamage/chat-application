@@ -4,7 +4,7 @@ import useGetConvo from '../hooks/useGetConvo'
 
 const Conversations = () => {
     const { loading, convo } = useGetConvo()
-    console.log("er", convo)
+
     return (
         <div className='py-2 flex flex-col overflow-auto'>
             {convo.map((conversation, index) => (

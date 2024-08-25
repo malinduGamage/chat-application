@@ -12,23 +12,47 @@ export const createPrivateChat = async (req, res) => {
     try {
         const { otherUserId } = req.body;
         const user = req.user;
+        console.log("othr", otherUserId, "self", user.id)
 
         //check if other party is provided
         if (!otherUserId) return res.status(400).json({ error: "Other party is required" });
 
         //check if other party exists
-        const otherUser = await User.findByPk(otherPartyId);
+        const otherUser = await User.findByPk(otherUserId);
+
         if (!otherUser) return res.status(400).json({ error: "Invalid User" });
-
+        console.log("user exists")
         //check if PrivateChat already exists
-        const privateChat = await PrivateChat.findOne({ where: { members: { [Op.contains]: [user.id, otherUserId] } } });
-        if (privateChat) return res.status(400).json({ error: "PrivateChat already exists" });
+        const privateChat = await PrivateChat.findOne({
+            where: {
+                members: {
+                    [Op.and]: [
+                        { [Op.contains]: [user.id] },
+                        { [Op.contains]: [otherUserId] }
+                    ]
+                }
+            }
+        });
 
+        if (privateChat) return res.status(200).json({
+            id: privateChat.id,
+            userId: otherUser.id,
+            fullname: otherUser.fullname,
+            profilepic: otherUser.profilepic
+
+        });
+        console.log("chat doesnt exists")
         //create PrivateChat
         const newPrivateChat = new PrivateChat({ members: [user.id, otherUserId] });
         await newPrivateChat.save();
 
-        res.status(201).json({ message: "PrivateChat created successfully" });
+        res.status(201).json({
+            id: newPrivateChat.id,
+            userId: otherUser.id,
+            fullname: otherUser.fullname,
+            profilepic: otherUser.profilepic
+
+        });
 
     } catch (error) {
         console.log("Error in createPrivateChat controller: ", error.message);
@@ -42,7 +66,6 @@ export const getPrivateChats = async (req, res) => {
 
         //get all PrivateChats of user
         const PrivateChats = await PrivateChat.findAll({ where: { members: { [Op.contains]: [user.id] } } });
-        console.log(PrivateChats, user.id);
 
         //get user details of PrivateChats
         const users = [];
@@ -54,7 +77,7 @@ export const getPrivateChats = async (req, res) => {
                     id: privateChat.id,
                     userId: otherUser.id,
                     fullname: otherUser.fullname,
-                    profilePic: otherUser.profilePic
+                    profilepic: otherUser.profilepic
 
                 });
             }
@@ -173,9 +196,8 @@ export const getMembers = async (req, res) => {
 export const sendMessage = async (req, res) => {
     try {
         //get message and conversation id
-        const { message } = req.body;
+        const { message, senderId } = req.body;
         const { convoId, type } = req.params;
-        const senderId = req.user.id;
 
         let convo;
 
@@ -280,6 +302,21 @@ export const deleteMessage = async (req, res) => {
 
     } catch (error) {
         console.log("Error in deleteMessage controller: ", error.message);
+        res.status(500).json({ error: "Internal server error" });
+    }
+}
+
+export const getPeople = async (req, res) => {
+    const userId = req.user.id;
+    try {
+        let people = await User.findAll({
+            attributes: ['id', 'fullname', 'profilepic']
+        });
+        people = people.filter(user => user.id !== userId);
+        res.status(200).json(people);
+
+    } catch (error) {
+        console.log("Error in getPeople controller: ", error.message);
         res.status(500).json({ error: "Internal server error" });
     }
 }

@@ -18,6 +18,7 @@ export const Login = () => {
 
     return (
         <div className='flex flex-col items-center justify-center min-w-96 mx-auto'>
+            **use different devices/browsers
             <div className='p-4 h-full w-full bg-white rounded-md bg-clip-padding backdrop-filter backdrop-blur-2xl bg-opacity-20 border border-gray-1' >
                 <h1 className='mb-8 text-3xl font-semibold text-center text-gray-300'>
                     Login

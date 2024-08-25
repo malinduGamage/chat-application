@@ -9,14 +9,13 @@ const Conversation = ({ conversation, lastIndex }) => {
     const isSelected = selectedConvo?.id === conversation.id
     const { onlineUsers } = useSocketContext()
     const isOnline = onlineUsers.includes(String(conversation.userId))
-    console.log(conversation.userId, onlineUsers, isOnline)
 
     return (
         <>
-            <div className={`flex gap-2 items-center hover:bg-sky-500 rounded-md p-2 py-1 cursor-pointer' ${isSelected ? "bg-sky-500" : ""}`} onClick={() => setSelectedConvo(conversation)}>
+            <div className={`flex gap-2 items-center hover:bg-teal-800 p-2 py-1 cursor-pointer h-10' ${isSelected ? "bg-teal-800" : ""}`} onClick={() => setSelectedConvo(conversation)}>
                 <div className={`avatar ${isOnline ? "online" : ""}`}>
-                    <div className="w-24 rounded-full">
-                        <img src={conversation.profilePic} alt='' />
+                    <div className="w-10 rounded-full m-2">
+                        <img src={conversation.profilepic} alt='' />
                     </div>
                 </div>
                 <div className='flex flex-col flex-1'>
@@ -29,7 +28,7 @@ const Conversation = ({ conversation, lastIndex }) => {
             <div>
 
             </div>
-            {!lastIndex && <div className='divider divider-info my-0 py-0 h1'></div>}
+            {!lastIndex && <div className='divider my-0 py-0 h-[1px] bg-gray-500'></div>}
         </>
     )
 }

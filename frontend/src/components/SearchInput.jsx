@@ -1,12 +1,10 @@
 import React from 'react'
-import { FaSearch } from "react-icons/fa";
 
 const SearchInput = () => {
     return (
         <div>
             <form>
-                <input type='text' placeholder='Search' className=' rounded-md input input-bordered' />
-                <button className='btn btn-primary'><FaSearch /></button>
+                <input type='text' placeholder='Search' className='rounded-none input input-bordered w-full' />
             </form>
         </div>
     )

@@ -28,11 +28,11 @@ app.use("/api/auth", authRoutes);
 app.use("/api/message", messageRoute)
 
 server.listen(PORT, () => {
-    //testDbConnection();
-    //syncDb();;
-    //syncPrivateChat();
-    //syncGroup();
-    //syncConvoUser();
-    //syncMessage();
+    // testDbConnection();
+    // syncDb();;
+    // syncPrivateChat();
+    // syncGroup();
+    // syncConvoUser();
+    // syncMessage();
     console.log(`Server is running on port ${PORT}`);
 });

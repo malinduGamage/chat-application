@@ -9,15 +9,15 @@ const Message = ({ message }) => {
     const time = extractTime(message.createdAt)
     const fromMe = message.userID === authUser.id
     const chatClass = fromMe ? 'chat chat-end' : 'chat chat-start'
-    const profilePic = fromMe ? authUser.profilePic : selectedConvo.profilePic
-    const bubbleClass = fromMe ? 'chat-bubble bg-blue-500' : 'chat-bubble bg-white text-black'
+    const profilepic = fromMe ? authUser.profilepic : selectedConvo.profilepic
+    const bubbleClass = fromMe ? 'chat-bubble bg-slate-800' : 'chat-bubble bg-blue-600 text-black'
 
     return (
         <div>
             <div className={`chat ${chatClass}`}>
                 <div className="chat-image avatar">
                     <div className="w-10 rounded-full">
-                        <img alt="" src={profilePic} />
+                        <img alt="" src={profilepic} />
                     </div>
                 </div>
 

@@ -1,9 +1,17 @@
 import { Sequelize } from 'sequelize';
+import dotenv from 'dotenv';
+dotenv.config();
 
-const sequelize = new Sequelize('chatApp', 'postgres', 'ms119119', {
-    host: 'localhost',
-    dialect: 'postgres'
-})
+console.log('connectionString:', process.env.DATABASE_URL);
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+    dialect: 'postgres',
+    dialectOptions: {
+        ssl: {
+            require: true,
+            rejectUnauthorized: false // Set to true if you want to verify the SSL certificate
+        }
+    }
+});
 
 const testDbConnection = async () => {
     try {
