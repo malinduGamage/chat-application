@@ -1,3 +1,4 @@
+*Loading can be slow at first because it is hosted in free platform*
 ## How to Use
 
 ### Multiple Accounts
